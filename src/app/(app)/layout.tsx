@@ -2,24 +2,30 @@ import Link from "next/link";
 import { requireProfile } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/actions/auth";
+import { MobileNav } from "@/components/MobileNav";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/courses", label: "Courses" },
+  { href: "/timetable", label: "Timetable" },
+  { href: "/calendar", label: "Calendar" },
+  { href: "/messages", label: "Messages" },
   { href: "/announcements", label: "Announcements" },
 ];
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const { profile } = await requireProfile();
+  const { userId, profile } = await requireProfile();
   const supabase = await createClient();
-  const { data: org } = await supabase
-    .from("organizations")
-    .select("name, slug")
-    .eq("id", profile.org_id)
-    .single();
+  const [{ data: org }, { data: superadminRow }] = await Promise.all([
+    supabase.from("organizations").select("name, slug").eq("id", profile.org_id).single(),
+    supabase.from("superadmins").select("id").eq("id", userId).maybeSingle(),
+  ]);
 
-  const navItems =
-    profile.role === "admin" ? [...NAV_ITEMS, { href: "/people", label: "People" }] : NAV_ITEMS;
+  const navItems = [
+    ...NAV_ITEMS,
+    ...(profile.role === "admin" ? [{ href: "/admin", label: "Admin" }] : []),
+    ...(superadminRow ? [{ href: "/superadmin", label: "Superadmin" }] : []),
+  ];
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -60,10 +66,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900 sm:hidden">
-          <Link href="/dashboard" className="text-lg font-bold text-slate-900 dark:text-white">
-            Pathly
-          </Link>
+        <header className="relative flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900 sm:hidden">
+          <div className="flex items-center gap-2">
+            <MobileNav items={navItems} />
+            <Link href="/dashboard" className="text-lg font-bold text-slate-900 dark:text-white">
+              Pathly
+            </Link>
+          </div>
           <form action={signOut}>
             <button type="submit" className="text-sm text-slate-500 dark:text-slate-400">
               Sign out
