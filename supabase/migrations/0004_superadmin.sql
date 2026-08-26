@@ -41,8 +41,9 @@ create policy "organizations_delete_superadmin" on public.organizations
 
 -- Seed the allowlist. This only takes effect once each person has actually
 -- signed up (auth.users rows don't exist before that) — if it inserts 0
--- rows here because they haven't signed up yet, re-run it later from the
--- Supabase SQL editor:
+-- rows here because they haven't signed up yet, install.sh re-checks this
+-- on every run. To do it by hand instead, run this against the db
+-- container (docker exec -i pathly-db psql -U supabase_admin -d postgres):
 --
 --   insert into public.superadmins (id, email)
 --   select id, email from auth.users

@@ -2,27 +2,34 @@
 #
 # Pathly LMS — VPS installer
 #
-# Clones the repo, installs Node.js/PM2, configures Supabase env vars,
-# builds, and runs the app under PM2. Safe to re-run: it updates an
-# existing checkout instead of re-cloning, and restarts the PM2 process
-# instead of duplicating it.
+# Clones the repo, installs Node.js/PM2/Docker, stands up a self-hosted
+# Supabase-compatible backend (Postgres + Auth + REST API, all running
+# locally in Docker — no cloud account, no manual SQL, no manual key
+# copying), applies the database schema, builds the app, and runs it under
+# PM2. Safe to re-run: it updates an existing checkout, reapplies only new
+# migrations, and restarts instead of duplicating anything.
 #
 # This script does NOT touch nginx/certbot — bring your own reverse proxy
-# (e.g. Nginx Proxy Manager) pointed at the port this app listens on.
+# (e.g. Nginx Proxy Manager) pointed at the ports this script prints at the
+# end.
 #
 # Usage:
 #   ./install.sh
-#   INSTALL_DIR=/srv/pathly PORT=3001 ./install.sh
+#   INSTALL_DIR=/srv/pathly PORT=3001 API_PORT=8001 ./install.sh
 #
 set -euo pipefail
 
 REPO_URL="https://github.com/benjamin-blanke/pathly-lms.git"
 INSTALL_DIR="${INSTALL_DIR:-/opt/pathly-lms}"
 PORT="${PORT:-3000}"
+API_PORT="${API_PORT:-8000}"
 PM2_APP_NAME="pathly"
 NODE_MAJOR_MIN=20
-TOTAL_STEPS=8
+TOTAL_STEPS=13
 STEP=0
+
+DOCKER_DIR=""   # set once INSTALL_DIR is known
+ENV_FILE=""     # docker/.env
 
 # ---------------------------------------------------------------------------
 # Output helpers
@@ -61,6 +68,22 @@ run_priv() {
   fi
 }
 
+# apt-get, fully non-interactive — no debconf prompts, and no needrestart
+# dialog asking which services to restart after installing packages.
+apt_get() {
+  run_priv env DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get "$@"
+}
+
+# docker compose, pinned to Pathly's backend stack file + env.
+dc() {
+  run_priv docker compose -f "$DOCKER_DIR/docker-compose.yml" --env-file "$ENV_FILE" "$@"
+}
+
+# Run a psql command inside the running db container.
+db_psql() {
+  run_priv docker exec -i pathly-db psql -v ON_ERROR_STOP=1 -U supabase_admin -d postgres "$@"
+}
+
 banner() {
   echo "${BOLD}${BLUE}"
   if command -v figlet >/dev/null 2>&1; then
@@ -88,12 +111,12 @@ banner
 step "Installing system packages"
 
 if ! command -v apt-get >/dev/null 2>&1; then
-  fail "This installer targets Debian/Ubuntu (apt-get not found). Install Node.js 20+, git, and PM2 manually, then run this script's later steps by hand."
+  fail "This installer targets Debian/Ubuntu (apt-get not found). Install Node.js 20+, git, Docker, and PM2 manually, then run this script's later steps by hand."
 fi
 
-run_priv apt-get update -qq
-run_priv apt-get install -y -qq curl git ca-certificates figlet >/dev/null
-success "curl, git, ca-certificates, figlet installed"
+apt_get update -qq
+apt_get install -y -qq curl git ca-certificates figlet openssl >/dev/null
+success "curl, git, ca-certificates, figlet, openssl installed"
 
 # ---------------------------------------------------------------------------
 # 2. Node.js
@@ -107,8 +130,8 @@ if command -v node >/dev/null 2>&1 && [ "$(node_major)" -ge "$NODE_MAJOR_MIN" ] 
   success "Node.js $(node -v) already installed"
 else
   info "Installing Node.js ${NODE_MAJOR_MIN}.x via NodeSource…"
-  curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR_MIN}.x" | run_priv bash - >/dev/null
-  run_priv apt-get install -y -qq nodejs >/dev/null
+  curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR_MIN}.x" | run_priv env DEBIAN_FRONTEND=noninteractive bash - >/dev/null
+  apt_get install -y -qq nodejs >/dev/null
   success "Node.js $(node -v) installed"
 fi
 
@@ -126,7 +149,22 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 4. Clone or update the repo
+# 4. Docker
+# ---------------------------------------------------------------------------
+
+step "Checking Docker"
+
+if command -v docker >/dev/null 2>&1 && run_priv docker compose version >/dev/null 2>&1; then
+  success "Docker $(docker --version | sed -E 's/Docker version ([0-9.]+).*/\1/') already installed"
+else
+  info "Installing Docker Engine + Compose plugin via get.docker.com…"
+  curl -fsSL https://get.docker.com | run_priv sh >/dev/null 2>&1
+  run_priv systemctl enable --now docker >/dev/null 2>&1 || true
+  success "Docker installed"
+fi
+
+# ---------------------------------------------------------------------------
+# 5. Clone or update the repo
 # ---------------------------------------------------------------------------
 
 step "Fetching the repository into ${INSTALL_DIR}"
@@ -147,9 +185,11 @@ else
 fi
 
 cd "$INSTALL_DIR"
+DOCKER_DIR="$INSTALL_DIR/docker"
+ENV_FILE="$DOCKER_DIR/.env"
 
 # ---------------------------------------------------------------------------
-# 5. Install dependencies
+# 6. Install dependencies
 # ---------------------------------------------------------------------------
 
 step "Installing dependencies (npm ci)"
@@ -157,45 +197,157 @@ npm ci --no-audit --no-fund
 success "Dependencies installed"
 
 # ---------------------------------------------------------------------------
-# 6. Configure environment variables
+# 7. Configure the backend (secrets + public API domain)
 # ---------------------------------------------------------------------------
 
-step "Configuring Supabase environment variables"
+step "Configuring the self-hosted backend"
 
-ENV_FILE="$INSTALL_DIR/.env.local"
-CONFIGURE_ENV=true
-
+CONFIGURE_BACKEND=true
 if [ -f "$ENV_FILE" ]; then
-  read -r -p "    An .env.local already exists — keep it as-is? [Y/n] " keep_env
-  if [[ ! "$keep_env" =~ ^[Nn]$ ]]; then
-    CONFIGURE_ENV=false
-    success "Keeping existing .env.local"
+  read -r -p "    docker/.env already exists — keep it as-is? [Y/n] " keep_backend_env
+  if [[ ! "$keep_backend_env" =~ ^[Nn]$ ]]; then
+    CONFIGURE_BACKEND=false
+    success "Keeping existing docker/.env"
+    # shellcheck disable=SC1090
+    source "$ENV_FILE"
   fi
 fi
 
-if [ "$CONFIGURE_ENV" = true ]; then
+if [ "$CONFIGURE_BACKEND" = true ]; then
   echo
-  info "Grab these from your Supabase project's Settings → API page."
-  read -r -p "    Supabase Project URL (https://xxxx.supabase.co): " supabase_url
-  read -r -p "    Supabase anon public key: " supabase_anon_key
-  read -r -s -p "    Supabase service_role key (input hidden): " supabase_service_key
-  echo
+  info "Pathly needs one public HTTPS domain for its backend API, separate from"
+  info "the app's own domain — e.g. api.yourdomain.com. Point a second proxy"
+  info "host at this server for it (see the instructions printed at the end)."
+  read -r -p "    Public URL for the backend API (https://api.yourdomain.com): " api_external_url
+  [ -n "$api_external_url" ] || fail "The backend API's public URL is required — the browser talks to it directly."
 
-  [ -n "$supabase_url" ] || fail "Supabase Project URL is required"
-  [ -n "$supabase_anon_key" ] || fail "Supabase anon key is required"
-  [ -n "$supabase_service_key" ] || fail "Supabase service_role key is required"
+  POSTGRES_PASSWORD="$(openssl rand -hex 24)"
+  JWT_SECRET="$(openssl rand -hex 32)"
+  JWT_EXPIRY=3600
+  API_EXTERNAL_URL="$api_external_url"
+  GATEWAY_PORT="$API_PORT"
 
+  mkdir -p "$DOCKER_DIR"
   cat > "$ENV_FILE" <<EOF
-NEXT_PUBLIC_SUPABASE_URL=${supabase_url}
-NEXT_PUBLIC_SUPABASE_ANON_KEY=${supabase_anon_key}
-SUPABASE_SERVICE_ROLE_KEY=${supabase_service_key}
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+JWT_SECRET=${JWT_SECRET}
+JWT_EXPIRY=${JWT_EXPIRY}
+API_EXTERNAL_URL=${API_EXTERNAL_URL}
+GATEWAY_PORT=${GATEWAY_PORT}
 EOF
   chmod 600 "$ENV_FILE"
-  success "Wrote .env.local (permissions locked to 600)"
+  success "Generated database password + JWT secret, wrote docker/.env"
 fi
 
+# Mint the long-lived anon/service_role API keys (JWTs signed with
+# JWT_SECRET) that supabase-js needs — the same mechanism Supabase Cloud
+# uses, just signed locally instead of handed to us by a dashboard.
+b64url() { openssl base64 -A | tr '+/' '-_' | tr -d '='; }
+
+mint_jwt() {
+  local role="$1" iat exp header_b64 payload_b64 signature
+  iat="$(date +%s)"
+  exp="$((iat + 315360000))" # 10 years — these are long-lived API keys, not user sessions
+  header_b64="$(printf '%s' '{"alg":"HS256","typ":"JWT"}' | b64url)"
+  payload_b64="$(printf '{"role":"%s","iss":"supabase","iat":%s,"exp":%s}' "$role" "$iat" "$exp" | b64url)"
+  signature="$(printf '%s' "${header_b64}.${payload_b64}" | openssl dgst -sha256 -hmac "$JWT_SECRET" -binary | b64url)"
+  printf '%s.%s.%s' "$header_b64" "$payload_b64" "$signature"
+}
+
+ANON_KEY="$(mint_jwt anon)"
+SERVICE_ROLE_KEY="$(mint_jwt service_role)"
+
 # ---------------------------------------------------------------------------
-# 7. Build
+# 8. Start the backend stack
+# ---------------------------------------------------------------------------
+
+step "Starting the backend (Postgres + Auth + REST API)"
+
+dc up -d
+success "Containers started"
+
+info "Waiting for the database to become healthy…"
+db_ready=false
+for _ in $(seq 1 60); do
+  if [ "$(run_priv docker inspect -f '{{.State.Health.Status}}' pathly-db 2>/dev/null)" = "healthy" ]; then
+    db_ready=true
+    break
+  fi
+  sleep 2
+done
+[ "$db_ready" = true ] || fail "Database didn't become healthy in time — check 'docker compose -f docker/docker-compose.yml logs db'"
+success "Database is healthy"
+
+info "Waiting for Auth to become healthy…"
+auth_ready=false
+for _ in $(seq 1 60); do
+  if [ "$(run_priv docker inspect -f '{{.State.Health.Status}}' pathly-auth 2>/dev/null)" = "healthy" ]; then
+    auth_ready=true
+    break
+  fi
+  sleep 2
+done
+[ "$auth_ready" = true ] || fail "Auth didn't become healthy in time — check 'docker compose -f docker/docker-compose.yml logs auth'"
+success "Auth is healthy"
+
+# ---------------------------------------------------------------------------
+# 9. Apply database migrations (idempotent — only new files run)
+# ---------------------------------------------------------------------------
+
+step "Applying database migrations"
+
+db_psql -c "create table if not exists public._pathly_migrations (filename text primary key, applied_at timestamptz not null default now());" >/dev/null
+
+applied_any=false
+for f in "$INSTALL_DIR"/supabase/migrations/*.sql; do
+  name="$(basename "$f")"
+  already="$(db_psql -tAc "select 1 from public._pathly_migrations where filename = '${name}';")"
+  if [ "$already" = "1" ]; then
+    continue
+  fi
+  info "Applying ${name}…"
+  db_psql < "$f"
+  db_psql -c "insert into public._pathly_migrations (filename) values ('${name}');" >/dev/null
+  applied_any=true
+done
+
+if [ "$applied_any" = true ]; then
+  success "Migrations applied"
+else
+  success "Database already up to date — nothing new to apply"
+fi
+
+# Re-check the superadmin allowlist every run (not just on first apply):
+# these accounts only get flagged once they've actually signed up, so a
+# signup that happens after the first install still needs to be caught.
+db_psql -c "
+  insert into public.superadmins (id, email)
+  select id, email from auth.users
+  where email in ('matteo@opus-host.de', 'benjamin@opus-host.de')
+  on conflict (id) do nothing;
+" >/dev/null
+
+# Make sure PostgREST picks up the (possibly just-created) schema immediately.
+run_priv docker exec pathly-db psql -U postgres -d postgres -c "NOTIFY pgrst, 'reload schema';" >/dev/null
+success "Superadmin allowlist synced, schema cache reloaded"
+
+# ---------------------------------------------------------------------------
+# 10. Configure app environment variables
+# ---------------------------------------------------------------------------
+
+step "Configuring app environment variables"
+
+APP_ENV_FILE="$INSTALL_DIR/.env.local"
+cat > "$APP_ENV_FILE" <<EOF
+NEXT_PUBLIC_SUPABASE_URL=${API_EXTERNAL_URL}
+NEXT_PUBLIC_SUPABASE_ANON_KEY=${ANON_KEY}
+SUPABASE_SERVICE_ROLE_KEY=${SERVICE_ROLE_KEY}
+EOF
+chmod 600 "$APP_ENV_FILE"
+success "Wrote .env.local pointing at the local backend"
+
+# ---------------------------------------------------------------------------
+# 11. Build
 # ---------------------------------------------------------------------------
 
 step "Building the app"
@@ -203,7 +355,7 @@ npm run build
 success "Build complete"
 
 # ---------------------------------------------------------------------------
-# 8. Start with PM2
+# 12. Start with PM2
 # ---------------------------------------------------------------------------
 
 step "Starting with PM2 on port ${PORT}"
@@ -228,8 +380,10 @@ if [[ "$STARTUP_CMD" == sudo* ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Done
+# 13. Done
 # ---------------------------------------------------------------------------
+
+step "Done"
 
 HOST_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
 
@@ -243,29 +397,24 @@ fi
 echo "${RESET}"
 
 echo "${BOLD}Pathly is running on port ${PORT} under PM2 (process: ${PM2_APP_NAME}).${RESET}"
+echo "${BOLD}Its self-hosted backend (Postgres + Auth + REST API) is running in Docker on port ${GATEWAY_PORT}.${RESET}"
 echo
 echo "${BOLD}Next steps:${RESET}"
 echo
-echo "  1. ${BOLD}Apply the database schema${RESET} — this script doesn't do it for you."
-echo "     Open your Supabase project's SQL Editor and run each file below, in order:"
-for f in "$INSTALL_DIR"/supabase/migrations/*.sql; do
-  echo "       - $(basename "$f")"
-done
+echo "  1. ${BOLD}Point your reverse proxy at two things${RESET} (Nginx Proxy Manager, etc.):"
+echo "       App:      Forward Hostname/IP ${HOST_IP:-<this-server-ip>}, Port ${PORT}  →  your main domain"
+echo "       Backend:  Forward Hostname/IP ${HOST_IP:-<this-server-ip>}, Port ${GATEWAY_PORT}  →  ${API_EXTERNAL_URL}"
+echo "       Enable SSL (Let's Encrypt) + Force SSL for both in your proxy's UI."
 echo
-echo "  2. ${BOLD}Point your reverse proxy at this app${RESET} (Nginx Proxy Manager, etc.):"
-echo "       Forward Hostname/IP:  ${HOST_IP:-<this-server-ip>}"
-echo "       Forward Port:         ${PORT}"
-echo "       Enable SSL (Let's Encrypt) + Force SSL in your proxy's UI."
+echo "  2. ${BOLD}Sign up${RESET} through the site and create your organization."
 echo
-echo "  3. ${BOLD}Sign up${RESET} through the site and create your organization."
+echo "  3. ${BOLD}Superadmins${RESET} (matteo@opus-host.de, benjamin@opus-host.de) are flagged"
+echo "     automatically once they sign up — this script re-checks on every run,"
+echo "     so no manual SQL is needed."
 echo
-echo "  4. ${BOLD}Seed the superadmin allowlist${RESET} (only takes effect after those accounts"
-echo "     have signed up) by running this in the Supabase SQL Editor:"
-echo "       insert into public.superadmins (id, email)"
-echo "       select id, email from auth.users"
-echo "       where email in ('matteo@opus-host.de', 'benjamin@opus-host.de')"
-echo "       on conflict (id) do nothing;"
-echo
-echo "${DIM}Useful commands: pm2 logs ${PM2_APP_NAME} | pm2 restart ${PM2_APP_NAME} | pm2 status${RESET}"
-echo "${DIM}To update later, just re-run this script — it pulls, rebuilds, and restarts.${RESET}"
+echo "${DIM}Useful commands:${RESET}"
+echo "${DIM}  App:      pm2 logs ${PM2_APP_NAME} | pm2 restart ${PM2_APP_NAME} | pm2 status${RESET}"
+echo "${DIM}  Backend:  docker compose -f docker/docker-compose.yml logs -f${RESET}"
+echo "${DIM}            docker compose -f docker/docker-compose.yml ps${RESET}"
+echo "${DIM}To update later, just re-run this script — it pulls, migrates, rebuilds, and restarts.${RESET}"
 echo
