@@ -221,6 +221,14 @@ if [ "$CONFIGURE_BACKEND" = true ]; then
   read -r -p "    Public URL for the backend API (https://api.yourdomain.com): " api_external_url
   [ -n "$api_external_url" ] || fail "The backend API's public URL is required — the browser talks to it directly."
 
+  # GoTrue requires a full URI with a scheme (a bare domain fails to parse
+  # and crash-loops the auth container) — add one if the user left it off,
+  # and drop any trailing slash so it composes cleanly with appended paths.
+  if [[ ! "$api_external_url" =~ ^https?:// ]]; then
+    api_external_url="https://${api_external_url}"
+  fi
+  api_external_url="${api_external_url%/}"
+
   POSTGRES_PASSWORD="$(openssl rand -hex 24)"
   JWT_SECRET="$(openssl rand -hex 32)"
   JWT_EXPIRY=3600
