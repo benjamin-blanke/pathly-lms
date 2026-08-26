@@ -48,7 +48,7 @@ The project is fully open source — institutions and contributors can inspect, 
 | Full read/write CalDAV (WebDAV PROPFIND/REPORT/MKCALENDAR) | 🚧 Not implemented — see below |
 | Discussion threads, notifications | 🚧 Not yet implemented |
 | Native file uploads (Supabase Storage) | 🚧 Resources/submissions currently take a URL; direct upload not wired up |
-| SSO (SAML/OIDC), SIS connectors | 🚧 Not yet implemented — Supabase Auth (email/password) ships today |
+| SSO (SAML/OIDC), SIS connectors | 🚧 Not yet implemented — GoTrue (email/password) ships today |
 | Analytics dashboards | 🚧 Not yet implemented |
 
 ### Calendar & CalDAV
@@ -58,9 +58,9 @@ The project is fully open source — institutions and contributors can inspect, 
 ## Architecture
 
 - **Frontend:** Next.js 16 (App Router, Server Actions, Tailwind CSS v4)
-- **Backend / Database:** Supabase (Postgres + Auth). Multi-tenancy and RBAC are enforced at the database layer with Row Level Security (RLS) policies, not just in application code.
-- **Auth:** Supabase Auth (email/password today; SSO can be added via Supabase's SAML/OIDC providers)
-- **Deployment:** Stateless Next.js app + a Supabase project per environment; suitable for containerized hosting. A single Next.js deployment can serve many tenants (organizations), each isolated by RLS.
+- **Backend / Database:** A self-hosted Supabase-compatible stack — Postgres + GoTrue (Auth) + PostgREST (the auto-generated REST API), the same open-source components Supabase Cloud runs, just running in Docker on your own server instead of on Supabase's infrastructure. Multi-tenancy and RBAC are enforced at the database layer with Row Level Security (RLS) policies, not just in application code.
+- **Auth:** GoTrue (email/password today; SSO can be added via its SAML/OIDC providers)
+- **Deployment:** Stateless Next.js app + the backend stack ([`docker/`](./docker)), both set up automatically by [`install.sh`](./install.sh) — no cloud account, no manual SQL, no manual key copying. A single deployment can serve many tenants (organizations), each isolated by RLS.
 
 ### Data model
 
@@ -70,7 +70,7 @@ See [`supabase/migrations/`](./supabase/migrations) for the full schema and RLS 
 
 #### The superadmin allowlist
 
-`superadmins` has no `INSERT` policy for the `authenticated` role by design — the only way onto it is direct database access (a migration, or the Supabase SQL editor). This repo's own migration seeds it for two specific accounts; if you fork or self-host Pathly, clear or replace that seed for your own deployment:
+`superadmins` has no `INSERT` policy for the `authenticated` role by design — the only way onto it is direct database access (a migration, or a `psql` session against the backend's `db` container). This repo's own migration seeds it for two specific accounts, and `install.sh` re-checks that seed on every run (it only takes effect once those accounts have actually signed up); if you fork or self-host Pathly for your own institution, clear or replace that seed for your own deployment:
 
 ```sql
 insert into public.superadmins (id, email)
@@ -83,7 +83,7 @@ on conflict (id) do nothing;
 
 ### Deploying to a VPS
 
-For a Debian/Ubuntu VPS, [`install.sh`](./install.sh) automates the whole setup — installs Node.js/PM2, clones the repo, prompts for your Supabase credentials, builds, and runs the app under PM2:
+For a Debian/Ubuntu VPS, [`install.sh`](./install.sh) automates the whole setup end to end — installs Node.js/PM2/Docker, clones the repo, stands up the self-hosted backend (Postgres + Auth + REST API in Docker, with generated secrets and freshly minted API keys), applies the database schema, builds, and runs the app under PM2. No Supabase account, no manual SQL, no manual key copying — the only thing it asks for is the public domain you'll point at the backend API:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/benjamin-blanke/pathly-lms/main/install.sh -o install.sh
@@ -91,14 +91,14 @@ chmod +x install.sh
 ./install.sh
 ```
 
-It doesn't touch nginx/certbot — point whatever reverse proxy you already run (Nginx Proxy Manager, Caddy, etc.) at the port it prints. It's also safe to re-run later: it pulls the latest `main`, reinstalls dependencies, rebuilds, and restarts the PM2 process — a one-line update.
+It doesn't touch nginx/certbot — point whatever reverse proxy you already run (Nginx Proxy Manager, Caddy, etc.) at the two ports it prints at the end: one for the app, one for the backend API (these need separate domains/subdomains, since the backend's URL is public and baked into the app at build time). It's also safe to re-run later: it pulls the latest `main`, applies any new migrations, rebuilds, and restarts — a one-line update.
 
 ### Local development
 
 #### Prerequisites
 
 - Node.js (v20+)
-- A [Supabase](https://supabase.com) project (free tier works for local development)
+- Docker + the Compose plugin (`docker compose version` should work)
 
 #### Installation
 
@@ -108,23 +108,38 @@ cd pathly-lms
 npm install
 ```
 
-#### Configure Supabase
+#### Start the backend
 
-1. Create a project at [supabase.com](https://supabase.com).
-2. Copy `.env.local.example` to `.env.local` and fill in your project's URL, anon key, and service role key (Project Settings → API — the service role key is server-only, used solely by the calendar ICS feed, and must never be exposed to the client):
+The backend ([`docker/`](./docker)) is a self-hosted Supabase-compatible stack — Postgres, GoTrue (Auth), and PostgREST, fronted by a small Caddy gateway. For local development, generate a `docker/.env` and start it:
 
-   ```bash
-   cp .env.local.example .env.local
-   ```
+```bash
+cd docker
+cat > .env <<EOF
+POSTGRES_PASSWORD=$(openssl rand -hex 24)
+JWT_SECRET=$(openssl rand -hex 32)
+JWT_EXPIRY=3600
+API_EXTERNAL_URL=http://localhost:8000
+GATEWAY_PORT=8000
+EOF
+docker compose up -d
+cd ..
+```
 
-3. Apply the database schema. Using the [Supabase CLI](https://supabase.com/docs/guides/cli):
+Then apply the schema (each file in `supabase/migrations/`, in order) and mint the `anon`/`service_role` API keys. `install.sh` does both of these automatically for a VPS deploy; for local dev, the quickest path is to run `./install.sh` once against a throwaway `INSTALL_DIR` to get keys minted the same way, or apply the migrations by hand with `psql` against the `db` container (`docker exec -i pathly-db psql -U supabase_admin -d postgres < supabase/migrations/0001_init.sql`, repeated in filename order) and mint keys as JWTs signed with your `JWT_SECRET` (`role: anon` / `role: service_role` claims, HS256).
 
-   ```bash
-   supabase link --project-ref <your-project-ref>
-   supabase db push
-   ```
+Copy `.env.local.example` to `.env.local` and fill in the values:
 
-   Or paste the contents of each file in `supabase/migrations/` into the Supabase SQL editor, in filename order, and run them.
+```bash
+cp .env.local.example .env.local
+```
+
+```
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:8000
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<minted anon key>
+SUPABASE_SERVICE_ROLE_KEY=<minted service_role key>
+```
+
+The service role key is server-only, used solely by the calendar ICS feed, and must never be exposed to the client.
 
 #### Development
 
@@ -153,11 +168,13 @@ src/
     actions/           # Server actions, one file per feature area
   components/          # Small shared client components (mobile nav, confirm button)
   lib/
-    supabase/          # Supabase browser/server/middleware/service-role clients
+    supabase/          # supabase-js browser/server/middleware/service-role clients
     types/database.ts  # Shared TypeScript types for the schema
     ics.ts              # Minimal RFC5545 iCalendar serializer
 supabase/
   migrations/           # Schema + RLS policies, applied in filename order
+docker/                 # Self-hosted backend: Postgres + Auth (GoTrue) + REST
+                        # API (PostgREST) + a Caddy gateway — see docker/docker-compose.yml
 website/                # Static marketing site (see below), deployed separately
 ```
 
