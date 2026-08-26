@@ -20,36 +20,95 @@ The project is fully open source — institutions and contributors can inspect, 
 - **Integrations** — SSO (SAML/OIDC), SIS/institutional system connectors
 - **Security & Compliance** — built with data protection and auditability in mind (e.g. GDPR-relevant data handling)
 
+### Current implementation status
+
+| Feature | Status |
+| --- | --- |
+| Multi-tenant orgs (create / join by code) | ✅ Implemented |
+| RBAC (org roles: admin/teacher/student, course roles: teacher/student) | ✅ Implemented via Postgres RLS |
+| Courses, modules, lessons | ✅ Implemented |
+| Enrollment (self-enroll + roster management) | ✅ Implemented |
+| Assignments, submissions, grading | ✅ Implemented |
+| Announcements (org-wide and per-course) | ✅ Implemented |
+| Discussion threads, notifications | 🚧 Not yet implemented |
+| File uploads (Supabase Storage) | 🚧 Submissions currently accept a link; native file upload not yet wired up |
+| SSO (SAML/OIDC), SIS connectors | 🚧 Not yet implemented — Supabase Auth (email/password) ships today |
+| Analytics dashboards | 🚧 Not yet implemented |
+
 ## Architecture
 
-*High-level overview — to be expanded as the project takes shape.*
+- **Frontend:** Next.js 16 (App Router, Server Actions, Tailwind CSS v4)
+- **Backend / Database:** Supabase (Postgres + Auth). Multi-tenancy and RBAC are enforced at the database layer with Row Level Security (RLS) policies, not just in application code.
+- **Auth:** Supabase Auth (email/password today; SSO can be added via Supabase's SAML/OIDC providers)
+- **Deployment:** Stateless Next.js app + a Supabase project per environment; suitable for containerized hosting. A single Next.js deployment can serve many tenants (organizations), each isolated by RLS.
 
-- **Frontend:** Next.js
-- **Backend / Database:** Supabase (or dedicated backend, TBD for multi-tenant scale)
-- **Auth:** SSO-capable (SAML/OIDC), role-based
-- **Deployment:** Designed for containerized, multi-tenant hosting rather than single-instance self-deploy
+### Data model
+
+`organizations` (tenants) → `profiles` (org members with a role) → `courses` → `course_modules` → `lessons`, plus `enrollments` (course-level role), `assignments` → `submissions` (grading fields live on the submission), and `announcements` (org-wide or course-scoped).
+
+See [`supabase/migrations/0001_init.sql`](./supabase/migrations/0001_init.sql) for the full schema and RLS policies.
 
 ## Getting Started
 
-> Setup instructions will be expanded as the architecture solidifies. Below is a placeholder for local development.
-
 ### Prerequisites
 
-- Node.js (v18+)
-- Access to the configured backend/database instance
+- Node.js (v20+)
+- A [Supabase](https://supabase.com) project (free tier works for local development)
 
 ### Installation
 
 ```bash
-git clone https://github.com/your-username/pathly.git
-cd pathly
+git clone https://github.com/benjamin-blanke/pathly-lms.git
+cd pathly-lms
 npm install
 ```
+
+### Configure Supabase
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. Copy `.env.local.example` to `.env.local` and fill in your project's URL and anon key (Project Settings → API):
+
+   ```bash
+   cp .env.local.example .env.local
+   ```
+
+3. Apply the database schema. Using the [Supabase CLI](https://supabase.com/docs/guides/cli):
+
+   ```bash
+   supabase link --project-ref <your-project-ref>
+   supabase db push
+   ```
+
+   Or paste the contents of `supabase/migrations/0001_init.sql` into the Supabase SQL editor and run it.
 
 ### Development
 
 ```bash
 npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). Sign up, then create a new organization (you'll become its admin) or join an existing one with its organization code.
+
+### Build
+
+```bash
+npm run build
+npm run start
+```
+
+## Project structure
+
+```
+src/
+  app/
+    (app)/            # Authenticated app shell: dashboard, courses, announcements, people
+    login/ signup/ onboarding/  # Auth & org onboarding flows
+    actions/           # Server actions (courses, assignments, announcements, people)
+  lib/
+    supabase/          # Supabase client/server/middleware helpers
+    types/database.ts  # Shared TypeScript types for the schema
+supabase/
+  migrations/0001_init.sql  # Schema + RLS policies
 ```
 
 ## Contributing
