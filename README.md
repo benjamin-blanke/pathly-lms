@@ -81,12 +81,26 @@ on conflict (id) do nothing;
 
 ## Getting Started
 
-### Prerequisites
+### Deploying to a VPS
+
+For a Debian/Ubuntu VPS, [`install.sh`](./install.sh) automates the whole setup — installs Node.js/PM2, clones the repo, prompts for your Supabase credentials, builds, and runs the app under PM2:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/benjamin-blanke/pathly-lms/main/install.sh -o install.sh
+chmod +x install.sh
+./install.sh
+```
+
+It doesn't touch nginx/certbot — point whatever reverse proxy you already run (Nginx Proxy Manager, Caddy, etc.) at the port it prints. It's also safe to re-run later: it pulls the latest `main`, reinstalls dependencies, rebuilds, and restarts the PM2 process — a one-line update.
+
+### Local development
+
+#### Prerequisites
 
 - Node.js (v20+)
 - A [Supabase](https://supabase.com) project (free tier works for local development)
 
-### Installation
+#### Installation
 
 ```bash
 git clone https://github.com/benjamin-blanke/pathly-lms.git
@@ -94,7 +108,7 @@ cd pathly-lms
 npm install
 ```
 
-### Configure Supabase
+#### Configure Supabase
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Copy `.env.local.example` to `.env.local` and fill in your project's URL, anon key, and service role key (Project Settings → API — the service role key is server-only, used solely by the calendar ICS feed, and must never be exposed to the client):
@@ -112,7 +126,7 @@ npm install
 
    Or paste the contents of each file in `supabase/migrations/` into the Supabase SQL editor, in filename order, and run them.
 
-### Development
+#### Development
 
 ```bash
 npm run dev
@@ -120,7 +134,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). Sign up, then create a new organization (you'll become its admin) or join an existing one with its organization code.
 
-### Build
+#### Build
 
 ```bash
 npm run build
