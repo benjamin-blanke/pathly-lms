@@ -4,61 +4,241 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Pathly — Open-source LMS</title>
-  <meta name="description" content="Pathly is an open-source, enterprise-grade learning management system — a modern alternative to platforms like itslearning." />
-  <link rel="icon" href="data:,">
+  <meta name="description" content="Pathly is an open-source, enterprise-grade learning management system — a modern alternative to platforms like itslearning, built for multi-tenancy, RBAC, and scale." />
+
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="assets/favicon-512.png" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+
+  <meta property="og:title" content="Pathly — Open-source LMS" />
+  <meta property="og:description" content="An open-source, enterprise-grade learning management system — a modern alternative to platforms like itslearning." />
+  <meta property="og:image" content="assets/pathly-logo.png" />
+  <meta name="theme-color" content="#05050a" />
+
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="bg-fx" aria-hidden="true">
+    <span class="orb orb-a"></span>
+    <span class="orb orb-b"></span>
+    <span class="orb orb-c"></span>
+    <span class="grid-overlay"></span>
+  </div>
+
   <header class="nav">
     <div class="nav-inner">
-      <span class="brand">Pathly</span>
-      <nav>
-        <a href="https://github.com/benjamin-blanke/pathly-lms">GitHub</a>
+      <a href="#top" class="brand">
+        <img src="assets/pathly-logo.png" alt="Pathly" class="brand-logo" />
+      </a>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#status">Status</a>
       </nav>
+      <a class="nav-cta" href="https://github.com/benjamin-blanke/pathly-lms" target="_blank" rel="noreferrer">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.5 7.5 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
+        </svg>
+        GitHub
+      </a>
     </div>
   </header>
 
-  <main>
+  <main id="top">
     <section class="hero">
-      <h1>An open-source LMS for institutions that need scale</h1>
-      <p>
-        Pathly is a modern, enterprise-grade alternative to platforms like itslearning —
-        built for schools, universities, and organizations that need multi-tenancy,
-        granular access control, and a codebase that scales beyond a single deployment.
+      <p class="eyebrow reveal">Open source · Self-hostable · MIT licensed</p>
+      <h1 class="reveal">An open-source LMS built for institutions that need scale</h1>
+      <p class="hero-sub reveal">
+        Pathly is a modern, enterprise-grade alternative to platforms like itslearning — built for
+        schools, universities, and organizations that need multi-tenancy, granular access control,
+        and a codebase that scales beyond a single deployment.
       </p>
-      <a class="cta" href="https://github.com/benjamin-blanke/pathly-lms">View the project on GitHub</a>
+      <div class="hero-actions reveal">
+        <a class="btn btn-primary" href="https://github.com/benjamin-blanke/pathly-lms" target="_blank" rel="noreferrer">
+          View on GitHub
+        </a>
+        <a class="btn btn-ghost" href="#features">Explore features</a>
+      </div>
+
+      <div class="hero-code reveal" aria-label="Quick start commands">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <pre><code>git clone https://github.com/benjamin-blanke/pathly-lms.git
+cd pathly-lms &amp;&amp; npm install
+npm run dev</code></pre>
+      </div>
     </section>
 
-    <section class="features">
-      <div class="feature">
-        <h3>Multi-Tenant Architecture</h3>
-        <p>Isolated instances for multiple schools and organizations from a single deployment.</p>
+    <section id="features" class="section">
+      <h2 class="reveal">Everything an institution needs</h2>
+      <p class="section-sub reveal">A single deployment, many organizations — each isolated at the database layer.</p>
+
+      <div class="grid features-grid">
+        <div class="card reveal">
+          <div class="icon-badge">🏢</div>
+          <h3>Multi-Tenant Architecture</h3>
+          <p>Isolated instances for multiple schools and organizations from a single deployment.</p>
+        </div>
+        <div class="card reveal">
+          <div class="icon-badge">🔐</div>
+          <h3>Role-Based Access Control</h3>
+          <p>Fine-grained permissions across students, teachers, admins, and institutional roles — enforced by Postgres Row Level Security, not just app code.</p>
+        </div>
+        <div class="card reveal">
+          <div class="icon-badge">📚</div>
+          <h3>Courses &amp; Modules</h3>
+          <p>Structured learning paths with modules and lessons, flexible enough for any curriculum.</p>
+        </div>
+        <div class="card reveal">
+          <div class="icon-badge">📝</div>
+          <h3>Assignments &amp; Grading</h3>
+          <p>Creation, distribution, submission, and grading workflows — with feedback and scores in one place.</p>
+        </div>
+        <div class="card reveal">
+          <div class="icon-badge">📣</div>
+          <h3>Communication</h3>
+          <p>Announcements scoped to your organization or a single course, so the right people see the right updates.</p>
+        </div>
+        <div class="card reveal">
+          <div class="icon-badge">🛡️</div>
+          <h3>Security &amp; Compliance</h3>
+          <p>Built with data protection and auditability in mind, with GDPR-relevant data handling as a first-class concern.</p>
+        </div>
       </div>
-      <div class="feature">
-        <h3>Role-Based Access Control</h3>
-        <p>Fine-grained permissions across students, teachers, admins, and institutional roles.</p>
+    </section>
+
+    <section id="how-it-works" class="section">
+      <h2 class="reveal">How it works</h2>
+      <p class="section-sub reveal">From sign-up to a running classroom in three steps.</p>
+
+      <div class="steps">
+        <div class="step reveal">
+          <div class="step-number">01</div>
+          <h3>Create or join an organization</h3>
+          <p>Sign up, then spin up a brand-new tenant as its admin — or join an existing one with its organization code.</p>
+        </div>
+        <div class="step reveal">
+          <div class="step-number">02</div>
+          <h3>Build your courses</h3>
+          <p>Teachers create courses, modules, and lessons, then open enrollment for students to join.</p>
+        </div>
+        <div class="step reveal">
+          <div class="step-number">03</div>
+          <h3>Teach, grade, communicate</h3>
+          <p>Assign work, grade submissions with feedback, and keep everyone in the loop with scoped announcements.</p>
+        </div>
       </div>
-      <div class="feature">
-        <h3>Courses & Modules</h3>
-        <p>Structured learning paths with flexible content organization.</p>
+    </section>
+
+    <section id="architecture" class="section">
+      <h2 class="reveal">Built to scale, not just to demo</h2>
+      <p class="section-sub reveal">A stateless app in front of a database that enforces the rules itself.</p>
+
+      <div class="arch reveal">
+        <div class="arch-node">
+          <span class="arch-label">Frontend</span>
+          <strong>Next.js 16</strong>
+          <span class="arch-detail">App Router · Server Actions · Tailwind CSS</span>
+        </div>
+        <div class="arch-arrow" aria-hidden="true">→</div>
+        <div class="arch-node">
+          <span class="arch-label">Auth</span>
+          <strong>Supabase Auth</strong>
+          <span class="arch-detail">Email/password today · SSO-ready</span>
+        </div>
+        <div class="arch-arrow" aria-hidden="true">→</div>
+        <div class="arch-node">
+          <span class="arch-label">Database</span>
+          <strong>Postgres + RLS</strong>
+          <span class="arch-detail">Multi-tenancy &amp; RBAC enforced at the data layer</span>
+        </div>
       </div>
-      <div class="feature">
-        <h3>Assignments & Grading</h3>
-        <p>Creation, distribution, submission, and grading workflows in one place.</p>
+
+      <p class="arch-note reveal">
+        One Next.js deployment can serve many tenants — every query is scoped by organization and role
+        through Row Level Security policies, so isolation holds even if application code has a bug.
+      </p>
+    </section>
+
+    <section id="status" class="section">
+      <h2 class="reveal">Current implementation status</h2>
+      <p class="section-sub reveal">Built as working software, tracked honestly.</p>
+
+      <div class="status-table reveal">
+        <div class="status-row status-head">
+          <span>Feature</span>
+          <span>Status</span>
+        </div>
+        <div class="status-row">
+          <span>Multi-tenant orgs (create / join by code)</span>
+          <span class="pill pill-done">Implemented</span>
+        </div>
+        <div class="status-row">
+          <span>RBAC via Postgres Row Level Security</span>
+          <span class="pill pill-done">Implemented</span>
+        </div>
+        <div class="status-row">
+          <span>Courses, modules, lessons</span>
+          <span class="pill pill-done">Implemented</span>
+        </div>
+        <div class="status-row">
+          <span>Enrollment (self-enroll + roster management)</span>
+          <span class="pill pill-done">Implemented</span>
+        </div>
+        <div class="status-row">
+          <span>Assignments, submissions, grading</span>
+          <span class="pill pill-done">Implemented</span>
+        </div>
+        <div class="status-row">
+          <span>Announcements (org-wide and per-course)</span>
+          <span class="pill pill-done">Implemented</span>
+        </div>
+        <div class="status-row">
+          <span>Discussion threads &amp; notifications</span>
+          <span class="pill pill-todo">Planned</span>
+        </div>
+        <div class="status-row">
+          <span>Native file uploads (Supabase Storage)</span>
+          <span class="pill pill-todo">Planned</span>
+        </div>
+        <div class="status-row">
+          <span>SSO (SAML/OIDC) &amp; SIS connectors</span>
+          <span class="pill pill-todo">Planned</span>
+        </div>
+        <div class="status-row">
+          <span>Analytics dashboards</span>
+          <span class="pill pill-todo">Planned</span>
+        </div>
       </div>
-      <div class="feature">
-        <h3>Communication</h3>
-        <p>Announcements scoped to your organization or a single course.</p>
-      </div>
-      <div class="feature">
-        <h3>Security & Compliance</h3>
-        <p>Built with data protection and auditability in mind, enforced at the database layer.</p>
+    </section>
+
+    <section class="section cta-section">
+      <div class="cta-box reveal">
+        <img src="assets/favicon-512.png" alt="" class="cta-mark" aria-hidden="true" />
+        <h2>Fully open source</h2>
+        <p>Inspect it, extend it, self-host it — or deploy it as a managed service. MIT licensed.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://github.com/benjamin-blanke/pathly-lms" target="_blank" rel="noreferrer">
+            Star on GitHub
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/benjamin-blanke/pathly-lms#readme" target="_blank" rel="noreferrer">
+            Read the docs
+          </a>
+        </div>
       </div>
     </section>
   </main>
 
   <footer>
+    <img src="assets/pathly-logo.png" alt="Pathly" class="footer-logo" />
     <p>Open source under the MIT License — built by the Pathly team.</p>
+    <div class="footer-links">
+      <a href="https://github.com/benjamin-blanke/pathly-lms" target="_blank" rel="noreferrer">GitHub</a>
+      <a href="https://github.com/benjamin-blanke/pathly-lms/blob/main/LICENSE" target="_blank" rel="noreferrer">License</a>
+      <a href="https://github.com/benjamin-blanke/pathly-lms#readme" target="_blank" rel="noreferrer">Documentation</a>
+    </div>
   </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
