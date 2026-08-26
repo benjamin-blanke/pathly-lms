@@ -48,7 +48,7 @@ export default async function NewCalendarEventPage({
             type="text"
             name="title"
             required
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="input-field mt-1 w-full"
           />
         </div>
 
@@ -57,7 +57,7 @@ export default async function NewCalendarEventPage({
           <select
             name="scope"
             defaultValue="personal"
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="input-field mt-1 w-full"
           >
             <option value="personal">Just me</option>
             {courseOptions.length > 0 && <option value="course">A course</option>}
@@ -70,7 +70,7 @@ export default async function NewCalendarEventPage({
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Course (if course event)</label>
             <select
               name="courseId"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+              className="input-field mt-1 w-full"
             >
               <option value="">—</option>
               {courseOptions.map((c) => (
@@ -89,7 +89,7 @@ export default async function NewCalendarEventPage({
               type="datetime-local"
               name="startsAt"
               required
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+              className="input-field mt-1 w-full"
             />
           </div>
           <div>
@@ -98,7 +98,7 @@ export default async function NewCalendarEventPage({
               type="datetime-local"
               name="endsAt"
               required
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+              className="input-field mt-1 w-full"
             />
           </div>
         </div>
@@ -113,7 +113,7 @@ export default async function NewCalendarEventPage({
           <input
             type="text"
             name="location"
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="input-field mt-1 w-full"
           />
         </div>
 
@@ -122,13 +122,13 @@ export default async function NewCalendarEventPage({
           <textarea
             name="description"
             rows={3}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="input-field mt-1 w-full"
           />
         </div>
 
         <button
           type="submit"
-          className="w-full rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+          className="btn-primary w-full"
         >
           Create event
         </button>

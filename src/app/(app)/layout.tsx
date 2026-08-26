@@ -3,6 +3,7 @@ import { requireProfile } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/actions/auth";
 import { MobileNav } from "@/components/MobileNav";
+import { NavLinks } from "@/components/NavLinks";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard" },
@@ -27,37 +28,39 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     ...(superadminRow ? [{ href: "/superadmin", label: "Superadmin" }] : []),
   ];
 
+  const initial = (profile.full_name || "?").trim().charAt(0).toUpperCase();
+
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:flex">
-        <Link href="/dashboard" className="px-2 text-lg font-bold text-slate-900 dark:text-white">
-          Pathly
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:flex">
+        <Link href="/dashboard" className="flex items-center gap-2 px-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-accent to-accent-2 text-sm font-bold text-white">
+            P
+          </span>
+          <span className="text-lg font-bold text-slate-900 dark:text-white">Pathly</span>
         </Link>
-        <p className="mt-1 truncate px-2 text-xs text-slate-500 dark:text-slate-400">{org?.name}</p>
+        <p className="mt-2 truncate px-2 text-xs text-slate-500 dark:text-slate-400">{org?.name}</p>
 
         <nav className="mt-6 flex flex-1 flex-col gap-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-md px-2 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-            >
-              {item.label}
-            </Link>
-          ))}
+          <NavLinks items={navItems} />
         </nav>
 
-        <div className="mt-auto space-y-2 border-t border-slate-200 pt-3 dark:border-slate-800">
-          <p className="truncate px-2 text-sm font-medium text-slate-900 dark:text-white">
-            {profile.full_name}
-          </p>
-          <p className="px-2 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            {profile.role}
-          </p>
+        <div className="mt-auto space-y-3 border-t border-slate-200 pt-3 dark:border-slate-800">
+          <div className="flex items-center gap-2 px-2">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-accent-2 text-sm font-semibold text-white">
+              {initial}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
+                {profile.full_name}
+              </p>
+              <p className="text-xs capitalize text-accent">{profile.role}</p>
+            </div>
+          </div>
           <form action={signOut}>
             <button
               type="submit"
-              className="w-full rounded-md px-2 py-2 text-left text-sm font-medium text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+              className="w-full rounded-md px-2 py-2 text-left text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
             >
               Sign out
             </button>
@@ -69,8 +72,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <header className="relative flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900 sm:hidden">
           <div className="flex items-center gap-2">
             <MobileNav items={navItems} />
-            <Link href="/dashboard" className="text-lg font-bold text-slate-900 dark:text-white">
-              Pathly
+            <Link href="/dashboard" className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-accent to-accent-2 text-xs font-bold text-white">
+                P
+              </span>
+              <span className="text-lg font-bold text-slate-900 dark:text-white">Pathly</span>
             </Link>
           </div>
           <form action={signOut}>

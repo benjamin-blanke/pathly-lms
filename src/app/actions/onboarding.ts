@@ -58,8 +58,6 @@ export async function createOrganization(formData: FormData) {
 export async function joinOrganization(formData: FormData) {
   const slug = String(formData.get("slug") ?? "").trim();
   const fullName = String(formData.get("fullName") ?? "").trim();
-  const role = String(formData.get("role") ?? "student");
-  const safeRole = role === "teacher" ? "teacher" : "student";
 
   if (!slug) {
     redirect(`/onboarding?error=${encodeURIComponent("Organization code is required")}`);
@@ -87,7 +85,7 @@ export async function joinOrganization(formData: FormData) {
   const { error: profileError } = await supabase.from("profiles").insert({
     id: user.id,
     org_id: org!.id,
-    role: safeRole,
+    role: "student",
     full_name: fullName || user.email || "Member",
   });
 

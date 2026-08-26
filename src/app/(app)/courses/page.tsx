@@ -33,7 +33,7 @@ export default async function CoursesPage() {
         {(profile.role === "admin" || profile.role === "teacher") && (
           <Link
             href="/courses/new"
-            className="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+            className="btn-primary"
           >
             + New course
           </Link>

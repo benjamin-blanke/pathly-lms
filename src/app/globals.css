@@ -3,11 +3,15 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --accent: #5350e0;
+  --accent-2: #9548e0;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -16,11 +20,28 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --accent: #7d7bff;
+    --accent-2: #b06bff;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+@layer components {
+  .btn-primary {
+    @apply rounded-md bg-gradient-to-r from-accent to-accent-2 px-3 py-2 text-sm font-semibold text-white shadow-sm shadow-accent/20 transition hover:opacity-90 disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-secondary {
+    @apply rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 transition hover:border-accent hover:text-accent dark:border-slate-700 dark:text-white dark:hover:border-accent dark:hover:text-accent;
+  }
+  .input-field {
+    @apply rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white;
+  }
+  .card {
+    @apply rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900;
+  }
 }

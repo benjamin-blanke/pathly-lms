@@ -42,7 +42,7 @@ export default async function NewMessagePage({
           <select
             name="recipientId"
             required
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="input-field mt-1 w-full"
           >
             <option value="">Select a person</option>
             {(members ?? []).map((member) => (
@@ -58,12 +58,12 @@ export default async function NewMessagePage({
             name="message"
             rows={4}
             required
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="input-field mt-1 w-full"
           />
         </div>
         <button
           type="submit"
-          className="w-full rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+          className="btn-primary w-full"
         >
           Send
         </button>

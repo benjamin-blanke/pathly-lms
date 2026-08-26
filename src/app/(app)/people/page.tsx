@@ -36,7 +36,7 @@ export default async function PeoplePage() {
                 name="role"
                 defaultValue={member.role}
                 disabled={member.id === profile.id}
-                className="rounded-md border border-slate-300 px-2 py-1 text-sm disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                className="input-field px-2 py-1 disabled:opacity-50"
               >
                 <option value="admin">Admin</option>
                 <option value="teacher">Teacher</option>

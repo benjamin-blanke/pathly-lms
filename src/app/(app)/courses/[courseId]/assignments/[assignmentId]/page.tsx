@@ -96,18 +96,18 @@ async function StudentView({
           rows={6}
           placeholder="Write your response..."
           defaultValue={submission?.content ?? ""}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+          className="input-field w-full"
         />
         <input
           type="url"
           name="fileUrl"
           placeholder="Link to a file (optional)"
           defaultValue={submission?.file_url ?? ""}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+          className="input-field w-full"
         />
         <button
           type="submit"
-          className="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+          className="btn-primary"
         >
           {submission ? "Update submission" : "Submit"}
         </button>
@@ -155,7 +155,7 @@ async function TeacherView({ courseId, assignmentId }: { courseId: string; assig
                   type="number"
                   name="score"
                   defaultValue={s.score ?? ""}
-                  className="w-24 rounded-md border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="input-field w-24 px-2 py-1.5"
                 />
               </div>
               <div className="flex-1">
@@ -164,12 +164,12 @@ async function TeacherView({ courseId, assignmentId }: { courseId: string; assig
                   type="text"
                   name="feedback"
                   defaultValue={s.feedback ?? ""}
-                  className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="input-field w-full px-2 py-1.5"
                 />
               </div>
               <button
                 type="submit"
-                className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+                className="btn-primary"
               >
                 Save grade
               </button>

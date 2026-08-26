@@ -78,11 +78,11 @@ export default async function ConversationPage({
           placeholder="Write a message…"
           required
           autoComplete="off"
-          className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+          className="input-field flex-1"
         />
         <button
           type="submit"
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+          className="btn-primary px-4 py-2"
         >
           Send
         </button>
