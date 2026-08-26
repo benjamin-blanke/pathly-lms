@@ -54,7 +54,7 @@ export default async function MessagesPage() {
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Messages</h1>
         <Link
           href="/messages/new"
-          className="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+          className="btn-primary"
         >
           + New message
         </Link>
@@ -99,7 +99,7 @@ function EmptyState() {
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Messages</h1>
         <Link
           href="/messages/new"
-          className="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+          className="btn-primary"
         >
           + New message
         </Link>

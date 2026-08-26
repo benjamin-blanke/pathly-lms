@@ -48,18 +48,18 @@ export default async function AnnouncementsPage() {
             name="title"
             placeholder="Title"
             required
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="input-field w-full"
           />
           <textarea
             name="body"
             placeholder="What's the announcement?"
             rows={3}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="input-field w-full"
           />
           <div className="flex items-center gap-2">
             <select
               name="courseId"
-              className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+              className="input-field flex-1"
             >
               {profile.role === "admin" && <option value="">Organization-wide</option>}
               {teachableCourses.map((course) => (
@@ -70,7 +70,7 @@ export default async function AnnouncementsPage() {
             </select>
             <button
               type="submit"
-              className="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+              className="btn-primary"
             >
               Post
             </button>

@@ -94,19 +94,19 @@ export default async function CalendarPage({
         <div className="flex items-center gap-2">
           <Link
             href={`/calendar?month=${formatMonthParam(prevMonth)}`}
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm dark:border-slate-700"
+            className="input-field px-3 py-1.5"
           >
             ← Prev
           </Link>
           <Link
             href={`/calendar?month=${formatMonthParam(nextMonth)}`}
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm dark:border-slate-700"
+            className="input-field px-3 py-1.5"
           >
             Next →
           </Link>
           <Link
             href="/calendar/new"
-            className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-slate-900"
+            className="btn-primary"
           >
             + New event
           </Link>

@@ -37,7 +37,7 @@ export default async function NewCoursePage({
             type="text"
             name="title"
             required
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="input-field mt-1 w-full"
           />
         </div>
         <div>
@@ -46,7 +46,7 @@ export default async function NewCoursePage({
             type="text"
             name="code"
             placeholder="e.g. BIO-101"
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="input-field mt-1 w-full"
           />
         </div>
         <div>
@@ -54,12 +54,12 @@ export default async function NewCoursePage({
           <textarea
             name="description"
             rows={4}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="input-field mt-1 w-full"
           />
         </div>
         <button
           type="submit"
-          className="w-full rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+          className="btn-primary w-full"
         >
           Create course
         </button>

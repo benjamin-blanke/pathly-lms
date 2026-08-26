@@ -179,15 +179,15 @@ export default async function TimetablePage({
                   name="name"
                   placeholder="Room name"
                   required
-                  className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="input-field w-full px-2 py-1.5"
                 />
                 <input
                   type="number"
                   name="capacity"
                   placeholder="Capacity (optional)"
-                  className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="input-field w-full px-2 py-1.5"
                 />
-                <button type="submit" className="w-full rounded-md bg-slate-900 px-2 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-slate-900">
+                <button type="submit" className="btn-primary w-full px-2 py-1.5">
                   Add room
                 </button>
               </form>
@@ -215,23 +215,23 @@ export default async function TimetablePage({
                   name="name"
                   placeholder="e.g. Period 1"
                   required
-                  className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="input-field w-full px-2 py-1.5"
                 />
                 <div className="flex gap-2">
                   <input
                     type="time"
                     name="startTime"
                     required
-                    className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    className="input-field w-full px-2 py-1.5"
                   />
                   <input
                     type="time"
                     name="endTime"
                     required
-                    className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    className="input-field w-full px-2 py-1.5"
                   />
                 </div>
-                <button type="submit" className="w-full rounded-md bg-slate-900 px-2 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-slate-900">
+                <button type="submit" className="btn-primary w-full px-2 py-1.5">
                   Add period
                 </button>
               </form>
@@ -243,7 +243,7 @@ export default async function TimetablePage({
                 <select
                   name="courseId"
                   required
-                  className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="input-field w-full px-2 py-1.5"
                 >
                   <option value="">Course</option>
                   {teachableCourses.map((c) => (
@@ -255,7 +255,7 @@ export default async function TimetablePage({
                 <select
                   name="weekday"
                   required
-                  className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="input-field w-full px-2 py-1.5"
                 >
                   {WEEKDAYS.map((d) => (
                     <option key={d.value} value={d.value}>
@@ -266,7 +266,7 @@ export default async function TimetablePage({
                 <select
                   name="periodId"
                   required
-                  className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="input-field w-full px-2 py-1.5"
                 >
                   <option value="">Period</option>
                   {(periods ?? []).map((p) => (
@@ -277,7 +277,7 @@ export default async function TimetablePage({
                 </select>
                 <select
                   name="roomId"
-                  className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="input-field w-full px-2 py-1.5"
                 >
                   <option value="">Room (optional)</option>
                   {(rooms ?? []).map((r) => (
@@ -286,7 +286,7 @@ export default async function TimetablePage({
                     </option>
                   ))}
                 </select>
-                <button type="submit" className="w-full rounded-md bg-slate-900 px-2 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-slate-900">
+                <button type="submit" className="btn-primary w-full px-2 py-1.5">
                   Add to timetable
                 </button>
               </form>

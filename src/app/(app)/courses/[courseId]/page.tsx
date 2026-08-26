@@ -100,7 +100,7 @@ export default async function CourseDetailPage({
             <form action={enrollSelf.bind(null, courseId)}>
               <button
                 type="submit"
-                className="shrink-0 rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+                className="btn-primary shrink-0"
               >
                 Enroll
               </button>
@@ -174,17 +174,17 @@ export default async function CourseDetailPage({
                             name="title"
                             placeholder="Lesson title"
                             required
-                            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                            className="input-field w-full"
                           />
                           <textarea
                             name="content"
                             placeholder="Lesson content"
                             rows={3}
-                            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                            className="input-field w-full"
                           />
                           <button
                             type="submit"
-                            className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+                            className="btn-primary"
                           >
                             Add lesson
                           </button>
@@ -201,12 +201,12 @@ export default async function CourseDetailPage({
                             name="title"
                             placeholder="Resource title"
                             required
-                            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                            className="input-field w-full"
                           />
                           <div className="flex gap-2">
                             <select
                               name="type"
-                              className="rounded-md border border-slate-300 px-2 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                              className="input-field px-2 py-2"
                             >
                               <option value="link">Link</option>
                               <option value="file">File</option>
@@ -216,12 +216,12 @@ export default async function CourseDetailPage({
                               name="url"
                               placeholder="https://…"
                               required
-                              className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                              className="input-field flex-1"
                             />
                           </div>
                           <button
                             type="submit"
-                            className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+                            className="btn-primary"
                           >
                             Add resource
                           </button>
@@ -249,11 +249,11 @@ export default async function CourseDetailPage({
                       name="title"
                       placeholder="Module title"
                       required
-                      className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      className="input-field flex-1"
                     />
                     <button
                       type="submit"
-                      className="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+                      className="btn-primary"
                     >
                       Add
                     </button>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 import { signIn } from "@/app/actions/auth";
 
 export default async function LoginPage({
@@ -10,10 +11,8 @@ export default async function LoginPage({
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 dark:bg-slate-950">
-      <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <Link href="/" className="text-lg font-semibold text-slate-900 dark:text-white">
-          Pathly
-        </Link>
+      <div className="card w-full max-w-sm p-8">
+        <Logo />
         <h1 className="mt-4 text-2xl font-bold text-slate-900 dark:text-white">Sign in</h1>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Welcome back. Enter your credentials to continue.
@@ -33,7 +32,7 @@ export default async function LoginPage({
               type="email"
               name="email"
               required
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:border-white"
+              className="input-field mt-1 w-full"
             />
           </div>
           <div>
@@ -42,12 +41,12 @@ export default async function LoginPage({
               type="password"
               name="password"
               required
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:border-white"
+              className="input-field mt-1 w-full"
             />
           </div>
           <button
             type="submit"
-            className="w-full rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+            className="btn-primary w-full"
           >
             Sign in
           </button>
@@ -55,7 +54,7 @@ export default async function LoginPage({
 
         <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="font-medium text-slate-900 underline dark:text-white">
+          <Link href="/signup" className="font-medium text-accent hover:underline">
             Sign up
           </Link>
         </p>
