@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { requireProfile } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createModule, createLesson, enrollSelf, removeEnrollment } from "@/app/actions/courses";
-import type { Assignment, CourseModule, Lesson, Profile } from "@/lib/types/database";
+import { createResource, deleteResource } from "@/app/actions/resources";
+import type { Assignment, CourseModule, CourseResource, Lesson, Profile } from "@/lib/types/database";
 
 type EnrollmentWithProfile = {
   id: string;
@@ -37,7 +38,7 @@ export default async function CourseDetailPage({
   const isTeacher = profile.role === "admin" || enrollment?.role === "teacher";
   const isMember = Boolean(enrollment) || profile.role === "admin";
 
-  const [{ data: modules }, { data: lessonsData }, { data: rosterRaw }, { data: assignments }] =
+  const [{ data: modules }, { data: lessonsData }, { data: resourcesData }, { data: rosterRaw }, { data: assignments }] =
     await Promise.all([
       supabase
         .from("course_modules")
@@ -50,6 +51,11 @@ export default async function CourseDetailPage({
         .select("*")
         .order("position")
         .returns<Lesson[]>(),
+      supabase
+        .from("course_resources")
+        .select("*")
+        .order("position")
+        .returns<CourseResource[]>(),
       supabase
         .from("enrollments")
         .select("id, role, user_id, profile:profiles(*)")
@@ -68,6 +74,12 @@ export default async function CourseDetailPage({
     const list = lessonsByModule.get(lesson.module_id) ?? [];
     list.push(lesson);
     lessonsByModule.set(lesson.module_id, list);
+  }
+  const resourcesByModule = new Map<string, CourseResource[]>();
+  for (const resource of resourcesData ?? []) {
+    const list = resourcesByModule.get(resource.module_id) ?? [];
+    list.push(resource);
+    resourcesByModule.set(resource.module_id, list);
   }
 
   return (
@@ -123,33 +135,99 @@ export default async function CourseDetailPage({
                     ))}
                   </ul>
 
-                  {isTeacher && (
-                    <details className="mt-3">
-                      <summary className="cursor-pointer text-sm font-medium text-slate-500 dark:text-slate-400">
-                        + Add lesson
-                      </summary>
-                      <form action={createLesson.bind(null, courseId, module.id)} className="mt-2 space-y-2">
-                        <input
-                          type="text"
-                          name="title"
-                          placeholder="Lesson title"
-                          required
-                          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                        />
-                        <textarea
-                          name="content"
-                          placeholder="Lesson content"
-                          rows={3}
-                          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                        />
-                        <button
-                          type="submit"
-                          className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+                  {(resourcesByModule.get(module.id) ?? []).length > 0 && (
+                    <ul className="mt-2 space-y-2">
+                      {(resourcesByModule.get(module.id) ?? []).map((resource) => (
+                        <li
+                          key={resource.id}
+                          className="flex items-center justify-between gap-2 rounded-md border border-slate-200 p-3 text-sm dark:border-slate-800"
                         >
-                          Add lesson
-                        </button>
-                      </form>
-                    </details>
+                          <a
+                            href={resource.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex-1 text-blue-600 hover:underline dark:text-blue-400"
+                          >
+                            {resource.type === "file" ? "📎" : "🔗"} {resource.title}
+                          </a>
+                          {isTeacher && (
+                            <form action={deleteResource.bind(null, courseId, resource.id)}>
+                              <button type="submit" className="text-xs text-red-600 hover:underline dark:text-red-400">
+                                Remove
+                              </button>
+                            </form>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {isTeacher && (
+                    <div className="mt-3 flex flex-wrap gap-4">
+                      <details>
+                        <summary className="cursor-pointer text-sm font-medium text-slate-500 dark:text-slate-400">
+                          + Add lesson
+                        </summary>
+                        <form action={createLesson.bind(null, courseId, module.id)} className="mt-2 space-y-2">
+                          <input
+                            type="text"
+                            name="title"
+                            placeholder="Lesson title"
+                            required
+                            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                          />
+                          <textarea
+                            name="content"
+                            placeholder="Lesson content"
+                            rows={3}
+                            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                          />
+                          <button
+                            type="submit"
+                            className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+                          >
+                            Add lesson
+                          </button>
+                        </form>
+                      </details>
+
+                      <details>
+                        <summary className="cursor-pointer text-sm font-medium text-slate-500 dark:text-slate-400">
+                          + Add resource
+                        </summary>
+                        <form action={createResource.bind(null, courseId, module.id)} className="mt-2 space-y-2">
+                          <input
+                            type="text"
+                            name="title"
+                            placeholder="Resource title"
+                            required
+                            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                          />
+                          <div className="flex gap-2">
+                            <select
+                              name="type"
+                              className="rounded-md border border-slate-300 px-2 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                            >
+                              <option value="link">Link</option>
+                              <option value="file">File</option>
+                            </select>
+                            <input
+                              type="url"
+                              name="url"
+                              placeholder="https://…"
+                              required
+                              className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                            />
+                          </div>
+                          <button
+                            type="submit"
+                            className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+                          >
+                            Add resource
+                          </button>
+                        </form>
+                      </details>
+                    </div>
                   )}
                 </div>
               ))}

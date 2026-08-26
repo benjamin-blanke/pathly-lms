@@ -18,11 +18,14 @@ The project is fully open source — institutions and contributors can inspect, 
 
 - **Multi-Tenant Architecture** — isolated instances for multiple schools/organizations from a single deployment
 - **Role-Based Access Control (RBAC)** — fine-grained permissions across students, teachers, admins, and institutional roles
-- **Courses & Modules** — structured learning paths with flexible content organization
+- **Courses & Modules** — structured learning paths with lessons and Moodle-style link/file resources
 - **Assignments & Submissions** — creation, distribution, and grading workflows
-- **Grading & Analytics** — progress tracking, performance reporting, institutional dashboards
-- **Communication** — announcements, discussion threads, and notifications per course/organization
-- **File & Content Management** — structured storage for learning materials
+- **Timetable** — rooms, daily periods, and a weekly recurring schedule of course slots
+- **Calendar** — org-wide, per-course, and personal events, with a read-only iCal subscription feed for Apple/Google/Outlook Calendar
+- **Messages** — internal 1:1 and group conversations, scoped to an organization
+- **Communication** — announcements per organization or course
+- **Admin Panel** — organization settings, people/roles, and oversight for principals and IT staff
+- **Superadmin Panel** — a small, fixed, database-managed allowlist with cross-organization visibility for platform operators
 - **Integrations** — SSO (SAML/OIDC), SIS/institutional system connectors
 - **Security & Compliance** — built with data protection and auditability in mind (e.g. GDPR-relevant data handling)
 
@@ -32,14 +35,25 @@ The project is fully open source — institutions and contributors can inspect, 
 | --- | --- |
 | Multi-tenant orgs (create / join by code) | ✅ Implemented |
 | RBAC (org roles: admin/teacher/student, course roles: teacher/student) | ✅ Implemented via Postgres RLS |
-| Courses, modules, lessons | ✅ Implemented |
+| Courses, modules, lessons, link/file resources | ✅ Implemented |
 | Enrollment (self-enroll + roster management) | ✅ Implemented |
 | Assignments, submissions, grading | ✅ Implemented |
 | Announcements (org-wide and per-course) | ✅ Implemented |
+| Timetable (rooms, periods, weekly schedule) | ✅ Implemented |
+| Calendar (org/course/personal events) | ✅ Implemented |
+| Calendar subscription (read-only iCal feed) | ✅ Implemented — see [Calendar & CalDAV](#calendar--caldav) below |
+| Messaging (1:1 and group, org-scoped) | ✅ Implemented |
+| Admin panel (org settings, people, oversight) | ✅ Implemented |
+| Superadmin panel (cross-org, fixed allowlist) | ✅ Implemented |
+| Full read/write CalDAV (WebDAV PROPFIND/REPORT/MKCALENDAR) | 🚧 Not implemented — see below |
 | Discussion threads, notifications | 🚧 Not yet implemented |
-| File uploads (Supabase Storage) | 🚧 Submissions currently accept a link; native file upload not yet wired up |
+| Native file uploads (Supabase Storage) | 🚧 Resources/submissions currently take a URL; direct upload not wired up |
 | SSO (SAML/OIDC), SIS connectors | 🚧 Not yet implemented — Supabase Auth (email/password) ships today |
 | Analytics dashboards | 🚧 Not yet implemented |
+
+### Calendar & CalDAV
+
+"Calendar with CalDAV" in practice means two different things: full read/write CalDAV is the WebDAV extension (`PROPFIND`/`REPORT`/`MKCALENDAR`) that lets a calendar app edit events on the server — a substantial protocol to implement correctly, and not what's here yet. What *is* implemented is **calendar subscription**: each user has a secret, rotatable token (`profiles.calendar_token`) behind `/calendar/feed/[token].ics`, which serves a standard iCalendar feed of everything they can see (org-wide, their enrolled courses, and their personal events). Apple Calendar, Google Calendar, and Outlook all support subscribing to a feed like this by URL — you'll see events update on a refresh interval, but edits still happen in Pathly. Full bidirectional CalDAV is tracked as future work.
 
 ## Architecture
 
@@ -50,9 +64,20 @@ The project is fully open source — institutions and contributors can inspect, 
 
 ### Data model
 
-`organizations` (tenants) → `profiles` (org members with a role) → `courses` → `course_modules` → `lessons`, plus `enrollments` (course-level role), `assignments` → `submissions` (grading fields live on the submission), and `announcements` (org-wide or course-scoped).
+`organizations` (tenants) → `profiles` (org members with a role) → `courses` → `course_modules` → `lessons` / `course_resources`, plus `enrollments` (course-level role), `assignments` → `submissions` (grading fields live on the submission), `announcements` (org-wide or course-scoped), `rooms` / `periods` / `timetable_entries` (weekly schedule), `calendar_events` (org/course/personal), `conversations` / `conversation_participants` / `messages`, and `superadmins` (a fixed, database-managed allowlist — never editable through the app itself).
 
-See [`supabase/migrations/0001_init.sql`](./supabase/migrations/0001_init.sql) for the full schema and RLS policies.
+See [`supabase/migrations/`](./supabase/migrations) for the full schema and RLS policies, applied in filename order.
+
+#### The superadmin allowlist
+
+`superadmins` has no `INSERT` policy for the `authenticated` role by design — the only way onto it is direct database access (a migration, or the Supabase SQL editor). This repo's own migration seeds it for two specific accounts; if you fork or self-host Pathly, clear or replace that seed for your own deployment:
+
+```sql
+insert into public.superadmins (id, email)
+select id, email from auth.users
+where email in ('you@example.com')
+on conflict (id) do nothing;
+```
 
 ## Getting Started
 
@@ -72,7 +97,7 @@ npm install
 ### Configure Supabase
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Copy `.env.local.example` to `.env.local` and fill in your project's URL and anon key (Project Settings → API):
+2. Copy `.env.local.example` to `.env.local` and fill in your project's URL, anon key, and service role key (Project Settings → API — the service role key is server-only, used solely by the calendar ICS feed, and must never be exposed to the client):
 
    ```bash
    cp .env.local.example .env.local
@@ -85,7 +110,7 @@ npm install
    supabase db push
    ```
 
-   Or paste the contents of `supabase/migrations/0001_init.sql` into the Supabase SQL editor and run it.
+   Or paste the contents of each file in `supabase/migrations/` into the Supabase SQL editor, in filename order, and run them.
 
 ### Development
 
@@ -107,14 +132,19 @@ npm run start
 ```
 src/
   app/
-    (app)/            # Authenticated app shell: dashboard, courses, announcements, people
+    (app)/            # Authenticated app shell: dashboard, courses, timetable,
+                       # calendar (+ ICS feed route), messages, announcements,
+                       # people, admin, superadmin
     login/ signup/ onboarding/  # Auth & org onboarding flows
-    actions/           # Server actions (courses, assignments, announcements, people)
+    actions/           # Server actions, one file per feature area
+  components/          # Small shared client components (mobile nav, confirm button)
   lib/
-    supabase/          # Supabase client/server/middleware helpers
+    supabase/          # Supabase browser/server/middleware/service-role clients
     types/database.ts  # Shared TypeScript types for the schema
+    ics.ts              # Minimal RFC5545 iCalendar serializer
 supabase/
-  migrations/0001_init.sql  # Schema + RLS policies
+  migrations/           # Schema + RLS policies, applied in filename order
+website/                # Static marketing site (see below), deployed separately
 ```
 
 ## Contributing
