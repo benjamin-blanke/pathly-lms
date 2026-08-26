@@ -369,12 +369,14 @@ success "Build complete"
 step "Starting with PM2 on port ${PORT}"
 
 if pm2 describe "$PM2_APP_NAME" >/dev/null 2>&1; then
-  pm2 restart "$PM2_APP_NAME" --update-env >/dev/null
-  success "Restarted existing PM2 process '${PM2_APP_NAME}'"
-else
-  pm2 start npm --name "$PM2_APP_NAME" -- start -- -H 0.0.0.0 -p "$PORT" >/dev/null
-  success "Started PM2 process '${PM2_APP_NAME}'"
+  # Delete + recreate rather than `pm2 restart --update-env`: the port is a
+  # command-line argument to `next start`, not an environment variable, so
+  # --update-env never picks up a changed $PORT on a re-run — the process
+  # keeps listening on whatever port it was first created with.
+  pm2 delete "$PM2_APP_NAME" >/dev/null
 fi
+pm2 start npm --name "$PM2_APP_NAME" -- start -- -H 0.0.0.0 -p "$PORT" >/dev/null
+success "PM2 process '${PM2_APP_NAME}' running on port ${PORT}"
 
 pm2 save >/dev/null
 
