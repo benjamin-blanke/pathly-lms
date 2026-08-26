@@ -1,10 +1,14 @@
+<p align="center">
+  <img src="pathly.png" alt="Pathly logo" width="200" />
+</p>
+
 # Pathly
 
 An open-source, enterprise-grade learning management system (LMS) — a modern alternative to platforms like itslearning, built for institutions that need scale, security, and flexibility.
 
 ## Overview
 
-Pathly is designed for schools, universities, and larger organizations that need a robust learning platform with enterprise-level requirements: multi-tenancy, granular access control, integrations with existing institutional systems, and a codebase built to scale beyond a single deployment.
+Pathly is designed for schools, universities, and larger organizations that need a robust learning platform with enterprise-level requirements: multi-tenancy, granular access control, integrations [...]
 
 The project is fully open source — institutions and contributors can inspect, extend, and self-host the platform, or deploy it as a managed service.
 
