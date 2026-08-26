@@ -8,6 +8,8 @@ Pathly is designed for schools, universities, and larger organizations that need
 
 The project is fully open source — institutions and contributors can inspect, extend, and self-host the platform, or deploy it as a managed service.
 
+**Project website:** [`website/`](./website) is a small static marketing page for the project, deployed to GitHub Pages at https://benjamin-blanke.github.io/pathly-lms/ via [`.github/workflows/deploy-pages.yml`](./.github/workflows/deploy-pages.yml) on every push to `main`.
+
 ## Features
 
 - **Multi-Tenant Architecture** — isolated instances for multiple schools/organizations from a single deployment
