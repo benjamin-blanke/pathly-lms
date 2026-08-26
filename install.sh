@@ -61,6 +61,12 @@ run_priv() {
   fi
 }
 
+# apt-get, fully non-interactive — no debconf prompts, and no needrestart
+# dialog asking which services to restart after installing packages.
+apt_get() {
+  run_priv env DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get "$@"
+}
+
 banner() {
   echo "${BOLD}${BLUE}"
   if command -v figlet >/dev/null 2>&1; then
@@ -91,8 +97,8 @@ if ! command -v apt-get >/dev/null 2>&1; then
   fail "This installer targets Debian/Ubuntu (apt-get not found). Install Node.js 20+, git, and PM2 manually, then run this script's later steps by hand."
 fi
 
-run_priv apt-get update -qq
-run_priv apt-get install -y -qq curl git ca-certificates figlet >/dev/null
+apt_get update -qq
+apt_get install -y -qq curl git ca-certificates figlet >/dev/null
 success "curl, git, ca-certificates, figlet installed"
 
 # ---------------------------------------------------------------------------
@@ -107,8 +113,8 @@ if command -v node >/dev/null 2>&1 && [ "$(node_major)" -ge "$NODE_MAJOR_MIN" ] 
   success "Node.js $(node -v) already installed"
 else
   info "Installing Node.js ${NODE_MAJOR_MIN}.x via NodeSource…"
-  curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR_MIN}.x" | run_priv bash - >/dev/null
-  run_priv apt-get install -y -qq nodejs >/dev/null
+  curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR_MIN}.x" | run_priv env DEBIAN_FRONTEND=noninteractive bash - >/dev/null
+  apt_get install -y -qq nodejs >/dev/null
   success "Node.js $(node -v) installed"
 fi
 
