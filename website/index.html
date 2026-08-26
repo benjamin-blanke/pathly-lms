@@ -16,6 +16,7 @@
   <meta name="theme-color" content="#05050a" />
 
   <link rel="stylesheet" href="style.css" />
+  <script src="theme-init.js"></script>
 </head>
 <body>
   <div class="bg-fx" aria-hidden="true">
@@ -28,20 +29,47 @@
   <header class="nav">
     <div class="nav-inner">
       <a href="#top" class="brand">
-        <img src="assets/pathly-logo.png" alt="Pathly" class="brand-logo" />
+        <img src="assets/pathly-logo.png" alt="Pathly" class="brand-logo logo-dark" />
+        <img src="assets/pathly-logo-light.png" alt="Pathly" class="brand-logo logo-light" />
       </a>
       <nav class="nav-links">
+        <a href="#features" data-nav-link>Features</a>
+        <a href="#how-it-works" data-nav-link>How it works</a>
+        <a href="#architecture" data-nav-link>Architecture</a>
+        <a href="#status" data-nav-link>Status</a>
+        <a href="#faq" data-nav-link>FAQ</a>
+        <a href="roadmap.html">Roadmap</a>
+      </nav>
+      <div class="nav-right">
+        <button type="button" class="icon-btn" data-theme-toggle aria-label="Switch to light theme">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+          </svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
+          </svg>
+        </button>
+        <a class="nav-cta" href="https://github.com/benjamin-blanke/pathly-lms" target="_blank" rel="noreferrer">
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.5 7.5 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
+          </svg>
+          GitHub
+        </a>
+        <button type="button" class="icon-btn menu-toggle" data-menu-toggle aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+          <span></span>
+        </button>
+      </div>
+    </div>
+    <div class="mobile-menu" id="mobile-menu" data-mobile-menu>
+      <div class="mobile-menu-inner">
         <a href="#features">Features</a>
         <a href="#how-it-works">How it works</a>
         <a href="#architecture">Architecture</a>
         <a href="#status">Status</a>
-      </nav>
-      <a class="nav-cta" href="https://github.com/benjamin-blanke/pathly-lms" target="_blank" rel="noreferrer">
-        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
-          <path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.5 7.5 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
-        </svg>
-        GitHub
-      </a>
+        <a href="#faq">FAQ</a>
+        <a href="roadmap.html">Roadmap</a>
+      </div>
     </div>
   </header>
 
@@ -62,8 +90,11 @@
       </div>
 
       <div class="hero-code reveal" aria-label="Quick start commands">
-        <div class="code-dots"><span></span><span></span><span></span></div>
-        <pre><code>git clone https://github.com/benjamin-blanke/pathly-lms.git
+        <div class="code-dots">
+          <div class="code-dots-group"><span></span><span></span><span></span></div>
+          <button type="button" class="copy-btn" data-copy="#quick-start-code">Copy</button>
+        </div>
+        <pre><code id="quick-start-code">git clone https://github.com/benjamin-blanke/pathly-lms.git
 cd pathly-lms &amp;&amp; npm install
 npm run dev</code></pre>
       </div>
@@ -210,6 +241,37 @@ npm run dev</code></pre>
           <span class="pill pill-todo">Planned</span>
         </div>
       </div>
+      <p class="arch-note reveal status-link">
+        <a href="roadmap.html">See the full roadmap →</a>
+      </p>
+    </section>
+
+    <section id="faq" class="section">
+      <h2 class="reveal">Frequently asked questions</h2>
+      <p class="section-sub reveal">Everything else people usually ask.</p>
+
+      <div class="faq-list">
+        <details class="faq-item reveal">
+          <summary>Is Pathly free to use?</summary>
+          <p>Yes. Pathly is fully open source under the MIT License — self-host it for free, or deploy it as a managed service. There's no paid tier gating features.</p>
+        </details>
+        <details class="faq-item reveal">
+          <summary>Can I self-host it?</summary>
+          <p>Yes, that's the primary way to run it today. Pathly is a stateless Next.js app in front of a Supabase (Postgres) project, so it runs anywhere Node.js and a Postgres database do.</p>
+        </details>
+        <details class="faq-item reveal">
+          <summary>How is multi-tenancy enforced?</summary>
+          <p>At the database layer. Every table is scoped by organization through Postgres Row Level Security policies, so isolation holds even if application code has a bug — not just a convention enforced in the frontend.</p>
+        </details>
+        <details class="faq-item reveal">
+          <summary>Does it support SSO?</summary>
+          <p>Not yet. Authentication runs on Supabase Auth with email/password today; SAML/OIDC SSO and SIS connectors are on the <a href="roadmap.html">roadmap</a>.</p>
+        </details>
+        <details class="faq-item reveal">
+          <summary>Can I contribute?</summary>
+          <p>The repository is currently private while the core is being built out, with contribution guidelines coming as the project opens up. Watch the <a href="https://github.com/benjamin-blanke/pathly-lms" target="_blank" rel="noreferrer">GitHub repo</a> for updates.</p>
+        </details>
+      </div>
     </section>
 
     <section class="section cta-section">
@@ -230,14 +292,22 @@ npm run dev</code></pre>
   </main>
 
   <footer>
-    <img src="assets/pathly-logo.png" alt="Pathly" class="footer-logo" />
+    <img src="assets/pathly-logo.png" alt="Pathly" class="footer-logo logo-dark" />
+    <img src="assets/pathly-logo-light.png" alt="Pathly" class="footer-logo logo-light" />
     <p>Open source under the MIT License — built by the Pathly team.</p>
     <div class="footer-links">
       <a href="https://github.com/benjamin-blanke/pathly-lms" target="_blank" rel="noreferrer">GitHub</a>
       <a href="https://github.com/benjamin-blanke/pathly-lms/blob/main/LICENSE" target="_blank" rel="noreferrer">License</a>
       <a href="https://github.com/benjamin-blanke/pathly-lms#readme" target="_blank" rel="noreferrer">Documentation</a>
+      <a href="roadmap.html">Roadmap</a>
     </div>
   </footer>
+
+  <button type="button" class="back-to-top" data-back-to-top aria-label="Back to top">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 19V5M5 12l7-7 7 7"></path>
+    </svg>
+  </button>
 
   <script src="script.js"></script>
 </body>
