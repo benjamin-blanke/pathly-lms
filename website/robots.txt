@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://benjamin-blanke.github.io/pathly-lms/sitemap.xml
